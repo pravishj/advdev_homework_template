@@ -14,7 +14,7 @@ oc policy add-role-to-group system:image-puller system:serviceaccounts:${GUID}-t
 oc policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins -n ${GUID}-tasks-prod
 
 # Create Blue Application
-oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-blue --allow-missing-imagestream-tags=true -n ${GUID}-tasks-prod
+oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-blue --allow-missing-imagestream-tags=true --allow-missing-images=true -n ${GUID}-tasks-prod
 oc set triggers dc/tasks-blue --remove-all -n ${GUID}-tasks-prod
 oc expose dc tasks-blue --port 8080 -n ${GUID}-tasks-prod
 oc create configmap tasks-blue-config --from-literal="application-users.properties=Placeholder" --from-literal="application-roles.properties=Placeholder" -n ${GUID}-tasks-prod
@@ -27,7 +27,7 @@ oc set env dc/tasks-blue VERSION='0.0 (tsks-blue)' -n ${GUID}-tasks-prod
 
 
 # Create Green Application
-oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-green --allow-missing-imagestream-tags=true -n ${GUID}-tasks-prod
+oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-green --allow-missing-imagestream-tags=true --allow-missing-images=true -n ${GUID}-tasks-prod
 oc set triggers dc/tasks-green --remove-all -n ${GUID}-tasks-prod
 oc expose dc tasks-green --port 8080 -n ${GUID}-tasks-prod
 oc create configmap tasks-green-config --from-literal="application-users.properties=Placeholder" --from-literal="application-roles.properties=Placeholder" -n ${GUID}-tasks-prod
