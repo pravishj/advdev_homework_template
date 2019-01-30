@@ -26,6 +26,7 @@ oc set probe dc/tasks-blue --liveness --get-url=http://:8080/ --initial-delay-se
 # Setting 'wrong' VERSION. This will need to be updated in the pipeline
 oc set env dc/tasks-blue VERSION='0.0 (tsks-blue)' -n ${GUID}-tasks-prod
 
+
 # Create Green Application
 oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-green --allow-missing-imagestream-tags=true -n ${GUID}-tasks-prod
 oc set triggers dc/tasks-green --remove-all -n ${GUID}-tasks-prod
