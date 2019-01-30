@@ -12,9 +12,10 @@ echo "Setting up Tasks Production Environment in project ${GUID}-tasks-prod"
 # Set up Production Project
 oc policy add-role-to-group system:image-puller system:serviceaccounts:${GUID}-tasks-prod -n ${GUID}-tasks-dev
 oc policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins -n ${GUID}-tasks-prod
+oc policy add-role-to-user edit system:serviceaccount:gpte-jenkins:jenkins -n ${GUID}-tasks-prod
 
 # Create Blue Application
-oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-blue --allow-missing-imagestream-tags=true --allow-missing-images=true -n ${GUID}-tasks-prod
+oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-blue --allow-missing-imagestream-tags=true -n ${GUID}-tasks-prod
 oc set triggers dc/tasks-blue --remove-all -n ${GUID}-tasks-prod
 oc expose dc tasks-blue --port 8080 -n ${GUID}-tasks-prod
 oc create configmap tasks-blue-config --from-literal="application-users.properties=Placeholder" --from-literal="application-roles.properties=Placeholder" -n ${GUID}-tasks-prod
@@ -25,9 +26,8 @@ oc set probe dc/tasks-blue --liveness --get-url=http://:8080/ --initial-delay-se
 # Setting 'wrong' VERSION. This will need to be updated in the pipeline
 oc set env dc/tasks-blue VERSION='0.0 (tsks-blue)' -n ${GUID}-tasks-prod
 
-
 # Create Green Application
-oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-green --allow-missing-imagestream-tags=true --allow-missing-images=true -n ${GUID}-tasks-prod
+oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-green --allow-missing-imagestream-tags=true -n ${GUID}-tasks-prod
 oc set triggers dc/tasks-green --remove-all -n ${GUID}-tasks-prod
 oc expose dc tasks-green --port 8080 -n ${GUID}-tasks-prod
 oc create configmap tasks-green-config --from-literal="application-users.properties=Placeholder" --from-literal="application-roles.properties=Placeholder" -n ${GUID}-tasks-prod
