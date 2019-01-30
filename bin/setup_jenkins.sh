@@ -13,36 +13,41 @@ CLUSTER=$3
 echo "Setting up Jenkins in project ${GUID}-jenkins from Git Repo ${REPO} for Cluster ${CLUSTER}"
 
 # Set up Jenkins with sufficient resources
-oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi --param VOLUME_CAPACITY=4Gi --param DISABLE_ADMINISTRATIVE_MONITORS=true
+oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi --param VOLUME_CAPACITY=4Gi --param DISABLE_ADMINISTRATIVE_MONITORS=true -n ${GUID}-jenkins
 
 # Create custom agent container image with skopeo
-oc new-build  -D $'FROM docker.io/openshift/jenkins-agent-maven-35-centos7:v3.11\nUSER root\nRUN yum -y install skopeo && yum clean all\nUSER 1001' --name=jenkins-agent-appdev -n ${GUID}-jenkins
+# TBD
+oc new-build  -D $'FROM docker.io/openshift/jenkins-agent-maven-35-centos7:v3.11\n
+      USER root\nRUN yum -y install skopeo && yum clean all\n
+      USER 1001' --name=jenkins-agent-appdev -n ${GUID}-jenkins
+
+echo "Before pipeline BuildConfig"      
 
 # Create pipeline build config pointing to the ${REPO} with contextDir `openshift-tasks`
 echo "apiVersion: v1
 items:
-- kind: "BuildConfig"
-  apiVersion: "v1"
+- kind: BuildConfig
+  apiVersion: v1
   metadata:
-    name: "tasks-pipeline"
+    name: tasks-pipeline
   spec:
     source:
+      type: Git
       git:
         uri: ${REPO}
+      contextDir: openshift-tasks   
     strategy:
-      jenkinsPipelineStrategy:
-        jenkinsfilePath: openshift-tasks/Jenkinsfile
-        env:
-        - name: "GUID"
-          value: ${GUID}
-        - name: "REPO"
-          value: ${REPO}
-        - name: "CLUSTER"
-          value: ${CLUSTER}
-      type: JenkinsPipeline
+        jenkinsPipelineStrategy:
+          env:
+          - name: GUID
+            value: ${GUID}
+          - name: REPO
+            value: ${REPO}
+          - name: CLUSTER
+            value: ${CLUSTER}
+        type: JenkinsPipeline
 kind: List
-metadata: []
-env: []" | oc create -f - -n ${GUID}-jenkins
+metadata: []" | oc create -f - -n ${GUID}-jenkins
 
 # Make sure that Jenkins is fully up and running before proceeding!
 while : ; do
